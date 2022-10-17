@@ -8,7 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: cachix/install-nix-action@v18
+      - name: Install package
+        run: |
+          sudo apt-get -y install jq
       - name: Cachix
         uses: cachix/cachix-action@v11
         with:
@@ -17,3 +21,4 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: true
       - run: nix eval --json ".#devShell.x86_64-linux" | sed 's/"\(.*\)"/\1/' | cachix push dit7ya
+      - run: nix eval --json ".#packages.x86_64-linux" | jq -r 'to_entries[].value' | cachix push dit7ya
