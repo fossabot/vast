@@ -30,9 +30,7 @@ class VAST:
     @staticmethod
     async def export_continuous(expression: str, callback):
         proc = await CLI().export(continuous=True).json(expression).exec()
-        while True:
-            if proc.stdout.at_eof():
-                break
+        while not proc.stdout.at_eof():
             line = await proc.stdout.readline()
             await callback(line)
         await proc.communicate()

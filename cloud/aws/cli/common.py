@@ -52,10 +52,7 @@ def conf(validators=[]) -> dict:
 
 def auto_app_fmt(val: bool) -> str:
     """Format the CLI options for auto approve"""
-    if val:
-        return "--terragrunt-non-interactive --auto-approve"
-    else:
-        return ""
+    return "--terragrunt-non-interactive --auto-approve" if val else ""
 
 
 def list_modules(c: Context) -> List[str]:
@@ -148,11 +145,10 @@ def load_cmd(cmd: str) -> bytes:
         check_absolute(path)
         with open(container_path(path), "rb") as f:
             return f.read()
-    if cmd.startswith("s3://"):
-        chunks = cmd[5:].split("/", 1)
-        return aws("s3").get_object(Bucket=chunks[0], Key=chunks[1])["Body"].read()
-    else:
+    if not cmd.startswith("s3://"):
         return cmd.encode()
+    chunks = cmd[5:].split("/", 1)
+    return aws("s3").get_object(Bucket=chunks[0], Key=chunks[1])["Body"].read()
 
 
 def parse_env(env: List[str]) -> Dict[str, str]:
@@ -199,7 +195,7 @@ class FargateService:
     def get_task_id(self, max_wait_time_sec=0, start_time=None):
         """Get the task id for this service. If no server is running, it waits
         until max_wait_time_sec for a new server to be started."""
-        if start_time == None:
+        if start_time is None:
             start_time = time.time()
         while True:
             task_res = aws("ecs").list_tasks(
@@ -207,14 +203,13 @@ class FargateService:
             )
             nb_vast_tasks = len(task_res["taskArns"])
             if nb_vast_tasks == 1:
-                task_id = task_res["taskArns"][0].split("/")[-1]
-                return task_id
+                return task_res["taskArns"][0].split("/")[-1]
             if nb_vast_tasks > 1:
                 raise Exit(f"{nb_vast_tasks} tasks running", 1)
             if max_wait_time_sec == 0:
-                raise Exit(f"No task running", EXIT_CODE_TASK_NOT_RUNNING)
+                raise Exit("No task running", EXIT_CODE_TASK_NOT_RUNNING)
             if time.time() - start_time > max_wait_time_sec:
-                raise Exit(f"Task timed out", 1)
+                raise Exit("Task timed out", 1)
             time.sleep(1)
 
     def _task_desc(self, task_arn):
@@ -238,17 +233,17 @@ class FargateService:
         # state machine
         if nb_vast_tasks > 1:
             return f"Unexpected number of tasks: {nb_vast_tasks}"
-        if desired_tasks == 1 and nb_vast_tasks == 1 and task_status == "RUNNING":
-            return "Service running"
         if desired_tasks == 1:
+            if nb_vast_tasks == 1 and task_status == "RUNNING":
+                return "Service running"
             if nb_vast_tasks == 0:
                 task_status = "no task running"
             else:
                 task_status = f"task status: {task_status}"
             return f"Service starting... ({task_status})"
-        if desired_tasks == 0 and nb_vast_tasks == 1:
-            return f"Service stopping... (task status: {task_status})"
         if desired_tasks == 0:
+            if nb_vast_tasks == 1:
+                return f"Service stopping... (task status: {task_status})"
             return "Service stopped"
 
     def describe_task(self):
@@ -260,8 +255,7 @@ class FargateService:
         if nb_vast_tasks > 1:
             raise Exit("{nb_vast_tasks} tasks running")
         else:
-            desc = self._task_desc(task_res["taskArns"][0])
-            return desc
+            return self._task_desc(task_res["taskArns"][0])
 
     def _wait_for_status(
         self, task_id, target_status: str | List[str], timeout, start_time

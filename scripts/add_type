@@ -88,7 +88,7 @@ def parse_set_cmd(f, new_entry):
             stop = True
         if path:
             if path == new_entry:
-                raise Exception(new_entry + " already exists in CMakeLists.txt")
+                raise Exception(f"{new_entry} already exists in CMakeLists.txt")
             file_names.append(path)
         if stop:
             file_names.sort()
@@ -103,10 +103,10 @@ def parse_set_cmd(f, new_entry):
 
 def extend_cmake(component, new_source, new_test):
     lines = []
-    cmake_path = component + "/CMakeLists.txt"
+    cmake_path = f"{component}/CMakeLists.txt"
     # Read old content from file.
     with open(cmake_path, "r") as f:
-        sources_marker = "set(" + component + "_sources"
+        sources_marker = f"set({component}_sources"
         test_marker = "set(tests"
         for line_with_newline in f:
             line = line_with_newline[:-1]
@@ -123,7 +123,7 @@ def extend_cmake(component, new_source, new_test):
 
 
 def make_file(component, path, tpl, fields):
-    with open(component + "/" + path, "w") as f:
+    with open(f"{component}/{path}", "w") as f:
         f.write(copyright)
         f.write(tpl % fields)
 
@@ -142,20 +142,21 @@ def main():
     # Split the fully qualified name into a list
     namev = args.name.split("::")
     if len(namev) < 2:
-        raise Exception(args.name + " is not a qualified name")
+        raise Exception(f"{args.name} is not a qualified name")
     path = "/".join(namev[1:])
-    extend_cmake(args.component, "src/" + path + ".cpp", "test/" + path + ".cpp")
+    extend_cmake(args.component, f"src/{path}.cpp", f"test/{path}.cpp")
     class_name = namev[-1]
     namespace = "::".join(namev[:-1])
     fields = {
         "class": class_name,
         "namespace": namespace,
-        "hpp": "vast/" + path + ".hpp",
+        "hpp": f"vast/{path}.hpp",
     }
-    make_file(args.component, "vast/" + path + ".hpp", header_tpl, fields)
+
+    make_file(args.component, f"vast/{path}.hpp", header_tpl, fields)
     if not args.headeronly:
-        make_file(args.component, "src/" + path + ".cpp", source_tpl, fields)
-    make_file(args.component, "test/" + path + ".cpp", test_tpl, fields)
+        make_file(args.component, f"src/{path}.cpp", source_tpl, fields)
+    make_file(args.component, f"test/{path}.cpp", test_tpl, fields)
 
 
 if __name__ == "__main__":

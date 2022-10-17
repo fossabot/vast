@@ -70,8 +70,7 @@ class VastCloudTestLoader(unittest.TestLoader):
             testCase = testCaseClass(testCaseName)
             testCase.c = self.c
             testCases.append(testCase)
-        loaded_suite = self.suiteClass(testCases)
-        return loaded_suite
+        return self.suiteClass(testCases)
 
 
 class VastStartRestart(unittest.TestCase):
@@ -236,7 +235,7 @@ class WorkbucketRoundtrip(unittest.TestCase):
             f"echo 'hello world' | ./vast-cloud workbucket.upload --source=/dev/stdin --key={key_frompipe}"
         )
 
-        print(f"List after upload")
+        print("List after upload")
         ls = self.c.run(
             f"./vast-cloud workbucket.list --prefix {TEST_PREFIX}", hide="out"
         ).stdout
@@ -353,12 +352,11 @@ class MISP(unittest.TestCase):
             print("Got response from MISP!")
             return resp.text
         except requests.exceptions.HTTPError as e:
-            if resp.status_code == 502:
-                self.assertIn("Waiting for MISP to start...", resp.text)
-                time.sleep(5)
-                return self.wait_for_misp(start_time)
-            else:
+            if resp.status_code != 502:
                 raise e
+            self.assertIn("Waiting for MISP to start...", resp.text)
+            time.sleep(5)
+            return self.wait_for_misp(start_time)
         except requests.exceptions.TooManyRedirects:
             print("Got Too Many Redirects error, got to retry...")
             # TODO find a solution to avoid this transient error state
@@ -427,11 +425,11 @@ DATASETS = {
 @task(help={"dataset": f"One of {list(DATASETS.keys())}"})
 def import_data(c, dataset):
     """Import the given dataset into the running vast server. Requires a workbucket."""
-    if not dataset in DATASETS:
+    if dataset not in DATASETS:
         raise Exit(message=f"--dataset should be one of {list(DATASETS.keys())}")
     ds_opts = DATASETS[dataset]
     ds_key = f"testdataset/{dataset}"
-    with open(DATASETS[dataset]["path"], "rb") as f:
+    with open(ds_opts["path"], "rb") as f:
         c.run(f"./vast-cloud workbucket.upload -s /dev/stdin -k {ds_key}", in_stream=f)
     print(f"Test data uploaded to workbucket as {ds_key}")
     bucket_name = c.run("./vast-cloud workbucket.name", hide="out").stdout.rstrip()

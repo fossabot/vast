@@ -30,7 +30,7 @@ class TheHive:
             "type": "string",
             "source": "string",
             "sourceRef": "".join(
-                random.choice(string.ascii_letters) for x in range(10)
+                random.choice(string.ascii_letters) for _ in range(10)
             ),
             "externalLink": "string",
             "title": "string",
@@ -66,6 +66,7 @@ class TheHive:
                 }
             ],
         }
+
         response = requests.post(
             f"{self.config.host}/api/v1/alert",
             files={"_json": json.dumps(thehive_alert)},

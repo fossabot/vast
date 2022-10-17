@@ -18,9 +18,8 @@ def timeout(func):
 
             time.sleep(0.1)
 
-            if TIMEOUT:
-                if time.time() - start > TIMEOUT:
-                    return False
+            if TIMEOUT and time.time() - start > TIMEOUT:
+                return False
 
     return _timeout
 

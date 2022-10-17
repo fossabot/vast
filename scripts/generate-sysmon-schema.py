@@ -87,12 +87,10 @@ def legacy_map_type(name, field_name):
     if name == "string":
         return "string"
     elif name == "integer":
-        if field_name == "SourcePort" or field_name == "DestinationPort":
-            return "port"
-        return "count"
+        return "port" if field_name in ["SourcePort", "DestinationPort"] else "count"
     elif name == "date":
         return "timestamp"
-    elif name == "boolean" or name == "bool":
+    elif name in ["boolean", "bool"]:
         return "bool"
     elif name == "ip":
         return "addr"
@@ -114,10 +112,9 @@ def format_event_fields(data):
 def format_event_type(data):
     """Formats the record type."""
     nl = "\n"
-    return f"""\
-{format_description(data)}
+    return f"""\\n    #{format_description(data)}
 type sysmon.{format_title(data)} = record {{
-{nl.join([event_field for event_field in format_event_fields(data)])}
+{nl.join(list(format_event_fields(data)))}
 }}
 """
 

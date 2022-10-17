@@ -96,7 +96,7 @@ class VAST:
             # trim trailing underscores to overcome the 'import' keyword
             name = name[:-1]
 
-        if not name == "__iter_":
+        if name != "__iter_":
             self.call_stack.append(name.replace("_", "-"))
 
         def method(*args, **kwargs):

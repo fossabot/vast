@@ -24,9 +24,9 @@ try:
                 batch = reader.read_next_batch()
                 batch_count += 1
                 row_count += batch.num_rows
-                print(str(batch.schema))
+                print(batch.schema)
         except StopIteration:
-            print("done with current reader, rows: " + str(row_count))
+            print(f"done with current reader, rows: {str(row_count)}")
             batch_count = 0
             row_count = 0
 except:

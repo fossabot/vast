@@ -21,10 +21,10 @@ class PatternType(pa.ExtensionType):
         return self.ext_name.encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(self, storage_type, serialized: bytes):
-        if serialized.decode() != self.ext_name:
+    def __arrow_ext_deserialize__(cls, storage_type, serialized: bytes):
+        if serialized.decode() != cls.ext_name:
             raise TypeError("type identifier does not match")
-        if storage_type != self.ext_type:
+        if storage_type != cls.ext_type:
             raise TypeError("storage type does not match")
         return PatternType()
 
@@ -51,10 +51,10 @@ class AddressType(pa.ExtensionType):
         return self.ext_name.encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(self, storage_type, serialized: bytes):
-        if serialized.decode() != self.ext_name:
+    def __arrow_ext_deserialize__(cls, storage_type, serialized: bytes):
+        if serialized.decode() != cls.ext_name:
             raise TypeError("type identifier does not match")
-        if storage_type != self.ext_type:
+        if storage_type != cls.ext_type:
             raise TypeError("storage type does not match")
         return AddressType()
 
@@ -83,10 +83,10 @@ class SubnetType(pa.ExtensionType):
         return self.ext_name.encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(self, storage_type, serialized: bytes):
-        if serialized.decode() != self.ext_name:
+    def __arrow_ext_deserialize__(cls, storage_type, serialized: bytes):
+        if serialized.decode() != cls.ext_name:
             raise TypeError("type identifier does not match")
-        if storage_type != self.ext_type:
+        if storage_type != cls.ext_type:
             raise TypeError("storage type does not match")
         return SubnetType()
 
@@ -130,9 +130,9 @@ class EnumType(pa.ExtensionType):
         # mappings in the inverse order.
 
     @classmethod
-    def __arrow_ext_deserialize__(self, storage_type, serialized: bytes):
+    def __arrow_ext_deserialize__(cls, storage_type, serialized: bytes):
         fields = json.loads(serialized.decode())
-        if storage_type != self.ext_type:
+        if storage_type != cls.ext_type:
             raise TypeError("storage type does not match")
         return EnumType(fields)
 
@@ -150,7 +150,7 @@ def names(schema: pa.Schema):
 
 def name(schema: pa.Schema):
     xs = names(schema)
-    return xs[0] if xs[0] else ""
+    return xs[0] or ""
 
 
 def pack_ip(address: str | ip.IPv4Address | ip.IPv6Address) -> bytes:

@@ -47,7 +47,7 @@ class CLI:
         if name.endswith("_"):
             # trim trailing underscores to overcome the 'import' keyword
             name = name[:-1]
-        if not name == "__iter_":
+        if name != "__iter_":
             self.args.append(name.replace("_", "-"))
 
         def command(*args, **kwargs):

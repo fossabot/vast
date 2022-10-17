@@ -56,8 +56,7 @@ class Client:
         )
         res.raise_for_status()
         ws_ls = res.json()["data"]
-        ws_map = {ws["attributes"]["name"]: ws for ws in ws_ls}
-        return ws_map
+        return {ws["attributes"]["name"]: ws for ws in ws_ls}
 
     @print_error_resp
     def upsert_workspaces(

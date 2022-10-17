@@ -130,16 +130,15 @@ def deploy(c, step="", auto_approve=False):
 )
 def current_image(c, service):
     """Get the current Lambda image URI. In case of failure, returns the error message instead of the URI."""
-    repo_arn = terraform_output(c, "core-1", f"vast_repository_arn")
+    repo_arn = terraform_output(c, "core-1", "vast_repository_arn")
     try:
         tags = aws("ecr").list_tags_for_resource(resourceArn=repo_arn)["tags"]
     except Exception as e:
         return str(e)
-    current = next(
+    return next(
         (tag["Value"] for tag in tags if tag["Key"] == f"current-{service}"),
         "current-image-not-defined",
     )
-    return current
 
 
 @task
@@ -156,8 +155,8 @@ def deploy_image(c, service, tag):
     ## We are using the repository tags as a key value store to flag
     ## the current image of each service. This allows a controlled
     ## version rollout in the downstream infra (lambda or fargate)
-    image_url = terraform_output(c, "core-1", f"vast_repository_url")
-    repo_arn = terraform_output(c, "core-1", f"vast_repository_arn")
+    image_url = terraform_output(c, "core-1", "vast_repository_url")
+    repo_arn = terraform_output(c, "core-1", "vast_repository_arn")
     # get the digest of the current image
     try:
         current_img = current_image(c, service)

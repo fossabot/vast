@@ -36,9 +36,7 @@ async def matcher_list():
     matchers_nl = stdout.decode().strip()
     if matchers_nl == "":
         sys.exit("No matcher to attach")
-    matchers_list = []
-    for line in matchers_nl.split("\n"):
-        matchers_list.append(line.split(" ")[0])
+    matchers_list = [line.split(" ")[0] for line in matchers_nl.split("\n")]
     return ",".join(matchers_list)
 
 

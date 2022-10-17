@@ -40,7 +40,7 @@ def extract_labels(argus_dir, libclang_path):
     if name.startswith('ArgusPrintLabel'):
       continue
     logger.debug(f'processing label function: {name}')
-    body = [x for x in node.get_children()][-1]
+    body = list(node.get_children())[-1]
     assert body.kind == CursorKind.COMPOUND_STMT
     # TODO: expand analysis beyond single sprintf statements.
     calls = [x for x in body.walk_preorder() if x.kind == CursorKind.CALL_EXPR]
@@ -48,7 +48,7 @@ def extract_labels(argus_dir, libclang_path):
       logger.info('ignoring too complex label printing')
       continue
     # The last argument is our label
-    last_arg = [x for x in calls[0].walk_preorder()][-1]
+    last_arg = list(calls[0].walk_preorder())[-1]
     if last_arg.kind != CursorKind.STRING_LITERAL:
       logger.info('skipping sprintf that does not end in a string literal')
       continue

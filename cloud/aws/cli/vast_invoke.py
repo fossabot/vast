@@ -35,11 +35,10 @@ class _Task(invoke.Task):
     def __call__(self, *args, **kwargs):
         if flags.CHECK_PTY:
             return "0"
-        else:
-            # specify no PTY for recursive calls to the CLI
-            args[0].config.run.env[flags.NO_PTY_FLAG_VAR] = "1"
-            update(args[0].config)
-            return super().__call__(*args, **kwargs)
+        # specify no PTY for recursive calls to the CLI
+        args[0].config.run.env[flags.NO_PTY_FLAG_VAR] = "1"
+        update(args[0].config)
+        return super().__call__(*args, **kwargs)
 
 
 class _PTYTask(invoke.Task):

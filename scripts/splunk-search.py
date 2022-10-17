@@ -85,51 +85,46 @@ Interplunk format for multivalues: values are wrapped in '$'
 and separated using ';'. Literal '$' values are represented with'$$'
 '''
 def getEncodedMV(vals):
-    s = ""
-    for val in vals:
-        val = val.replace('$', '$$')
-        if len(s):
-            s += ';'
-        s += '$' + val + '$'
-    return s
+  s = ""
+  for val in vals:
+    val = val.replace('$', '$$')
+    if len(s):
+        s += ';'
+    s += f'${val}$'
+  return s
 
 def outputResults(results, fields = None, mvdelim = '\n',
                   outputfile = sys.stdout):
-    '''
+  '''
     Outputs the contents of a result set to STDOUT in Interplunk format.
     '''
     
-    if results == None:
-        return
-    
-    s = set()
+  if results is None:
+    return
 
-    '''
+  s = set()
+
+  '''
     Check each entry to see if it is a list (multivalued). If so, set
     the multivalued key to the proper encoding. Replace the list with a
     newline separated string of the values
     '''
-    for i in range(1,len(results)+1):
-        for key in results[str(i)].keys():
-            if(isinstance(results[str(i)][key], list)):
-                results[str(i)]['__mv_' + key] = \
-                  getEncodedMV(results[str(i)][key])
-                results[str(i)][key] = \
-                  string.join(results[str(i)][key], mvdelim)
-                if not fields.count('__mv_' + key):
-                  fields.append('__mv_' + key)
-        s.update(results[str(i)].keys())
+  for i in range(1,len(results)+1):
+    for key in results[str(i)].keys():
+      if (isinstance(results[str(i)][key], list)):
+        results[str(i)][f'__mv_{key}'] = getEncodedMV(results[str(i)][key])
+        results[str(i)][key] = \
+          string.join(results[str(i)][key], mvdelim)
+        if not fields.count(f'__mv_{key}'):
+          fields.append(f'__mv_{key}')
+    s.update(results[str(i)].keys())
 
-    if fields is None:
-        h = list(s)
-    else:
-        h = fields
-    
-    dw = csv.DictWriter(outputfile, h)
+  h = list(s) if fields is None else fields
+  dw = csv.DictWriter(outputfile, h)
 
-    dw.writerow(dict(zip(h, h)))
-    for i in range(1,len(results)+1):
-      dw.writerow(results[str(i)])
+  dw.writerow(dict(zip(h, h)))
+  for i in range(1,len(results)+1):
+    dw.writerow(results[str(i)])
 
 def printHelp(parser):
   # Print help message diferently from cmdline and from Splunk
@@ -165,13 +160,11 @@ else:
 
 if opt.help:
   printHelp(parser)
-  
+
 p = subprocess.Popen(full_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                      stderr=sys.stderr)
 
-# Print cmd line to stderr to show in splunk query log.
-print >> sys.stderr,full_cmd
-
+opt, remainder = parser.parse_args()
 fullheader =[]
 currentheader = []
 eventlist = []
@@ -216,11 +209,11 @@ while True:
           else:
             sys.stdout.write(line.strip() + '\n')
       else:
-	dictionary = dict(zip(currentheader, next(csvline)))
+        dictionary = dict(zip(currentheader, next(csvline)))
         if opt.raw == True:
           dictionary['_raw']=ll
-	for key in dictionary:
-	  if " | " in dictionary[key]:
+        for key, value in dictionary.items():
+          if " | " in value:
             dictionary[key] = (dictionary[key]).split(" | ")
             dictionary[key] += dictionary[key]
         d[str(di)]=dictionary
@@ -228,37 +221,31 @@ while True:
         modcounter += 1
         if modcounter == 50000 : #don't want to use modulus
           d.sync()
-    else:
-      # new header
-      if opt.stream:
-        if stream_header == "":
-          if opt.raw:
-            stream_header = out.strip().replace(","+opt.tfield+",",",_time,")\
-                            +",_raw\n"
-          else:
-            stream_header = out.strip().replace(","+opt.tfield+",",",_time,")\
-                           +"\n"
-          sys.stdout.write(stream_header)
-        elif stream_header == \
-               out.strip().replace(","+opt.tfield+",",",_time,")+",_raw\n" \
-             or \
-             stream_header == \
-               out.strip().replace(","+opt.tfield+",",",_time,")+"\n":
-          stream_valid_source = True
-        else:
-          stream_valid_source = False
+    elif opt.stream:
+      if stream_header == "":
+        stream_header = (
+            out.strip().replace(f",{opt.tfield},", ",_time,") + ",_raw\n"
+            if opt.raw else
+            out.strip().replace(f",{opt.tfield},", ",_time,") + "\n")
+        sys.stdout.write(stream_header)
+      elif stream_header in [
+            out.strip().replace(f",{opt.tfield},", ",_time,") + ",_raw\n",
+            out.strip().replace(f",{opt.tfield},", ",_time,") + "\n",
+        ]:
+        stream_valid_source = True
       else:
-        currentheader=out.strip().replace(","+opt.tfield+",",",_time,")\
-                      .split(",")
-        [fullheader.append(i) for i in currentheader \
-          if not fullheader.count(i)]
+        stream_valid_source = False
+    else:
+      currentheader = out.strip().replace(f",{opt.tfield},", ",_time,").split(",")
+      [fullheader.append(i) for i in currentheader \
+        if not fullheader.count(i)]
 
 # output results if not streaming line-by-line
 if not opt.stream:
   if opt.raw:
     fullheader.append("_raw")
   outputResults(d,fields = fullheader)
-  for filename in glob.glob(tempfile.gettempdir()+"/*SplunkVastShelve*") :
+  for filename in glob.glob(f"{tempfile.gettempdir()}/*SplunkVastShelve*"):
     try:
       os.remove( filename )
     except:
