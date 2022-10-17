@@ -1,0 +1,19 @@
+name: Cachix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v18
+      - name: Cachix
+        uses: cachix/cachix-action@v11
+        with:
+          name: dit7ya
+          extraPullNames: "nix-community"
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: true
+      - run: nix eval --json ".#devShell.x86_64-linux" | sed 's/"\(.*\)"/\1/' | cachix push dit7ya
