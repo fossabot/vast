@@ -19,6 +19,7 @@ The network telemetry engine for data-driven security investigations.
 [![Since Release][since-release-badge]][since-release-url]
 [![License][license-badge]][license-url]
 [![CII Best Practices][cii-best-practices-badge]][cii-best-practices-url]
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdit7ya%2Fvast.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdit7ya%2Fvast?ref=badge_shield)
 
 [_Getting Started_](#getting-started) &mdash;
 [_Installation_][installation-url] &mdash;
@@ -166,3 +167,6 @@ proceedings][nsdi-proceedings].
 
 [vast-paper]: https://www.usenix.org/system/files/conference/nsdi16/nsdi16-paper-vallentin.pdf
 [nsdi-proceedings]: https://www.usenix.org/conference/nsdi16/technical-sessions
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdit7ya%2Fvast.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdit7ya%2Fvast?ref=badge_large)
